@@ -1,0 +1,1 @@
+<annotation verified="yes"><filename>rhino-206.jpg</filename><size><width>1400</width><height>930</height><depth>3</depth></size><object><name>rhino</name><bndbox><xmin>283</xmin><ymin>580</ymin><xmax>810</xmax><ymax>1185</ymax></bndbox></object><object><name>rhino</name><bndbox><xmin>630</xmin><ymin>468</ymin><xmax>1115</xmax><ymax>1198</ymax></bndbox></object></annotation>
