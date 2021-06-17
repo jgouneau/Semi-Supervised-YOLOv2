@@ -1,1 +1,1 @@
-<annotation verified="yes"><filename>elephant-216.jpg</filename><size><width>384</width><height>255</height><depth>3</depth></size><object><name>elephant</name><bndbox><xmin>202</xmin><ymin>127</ymin><xmax>566</xmax><ymax>380</ymax></bndbox></object></annotation>
+<annotation verified="yes"><filename>elephant-216.jpg</filename><size><width>384</width><height>255</height><depth>3</depth></size><object><name>elephant</name><bndbox><xmin>20</xmin><ymin>0</ymin><xmax>384</xmax><ymax>254</ymax></bndbox></object></annotation>

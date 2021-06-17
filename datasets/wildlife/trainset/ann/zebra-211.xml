@@ -1,1 +1,1 @@
-<annotation verified="yes"><filename>zebra-211.jpg</filename><size><width>373</width><height>300</height><depth>3</depth></size><object><name>zebra</name><bndbox><xmin>205</xmin><ymin>156</ymin><xmax>539</xmax><ymax>440</ymax></bndbox></object></annotation>
+<annotation verified="yes"><filename>zebra-211.jpg</filename><size><width>373</width><height>300</height><depth>3</depth></size><object><name>zebra</name><bndbox><xmin>37</xmin><ymin>14</ymin><xmax>372</xmax><ymax>298</ymax></bndbox></object></annotation>
