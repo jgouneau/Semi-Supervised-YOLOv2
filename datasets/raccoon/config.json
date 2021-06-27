@@ -1,0 +1,19 @@
+{
+    "anchors":          [10.33238,12.71749, 13.83776,20.18652, 16.01521,29.07321, 22.35600,28.43678, 29.83295,30.26405],
+    "labels":           ["raccoon"],
+
+    "train": {
+        "img_folder":   "/racoon/trainset/img/",
+        "ann_folder":   "/racoon/trainset/ann/"
+    },
+
+    "valid": {
+        "img_folder":   "",
+        "ann_folder":   ""
+    },
+
+    "test": {
+        "img_folder":   "/racoon/testset/img/",
+        "ann_folder":   "/racoon/testset/ann/"
+    }
+}
