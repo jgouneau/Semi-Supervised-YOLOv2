@@ -1,4 +1,4 @@
-from core.utils import import_feature_extractor, parse_annotation_xml
+from core.utils import parse_annotation_xml
 import numpy as np
 import random
 import json
@@ -87,15 +87,23 @@ def run_kmeans(ann_dims, anchor_num):
         old_distances = distances.copy()
 
 
-def generate_anchors(config_path, num_anchors):
+def generate_anchors(dataset_name, num_anchors, main_config_path):
 
-    with open(config_path) as config_buffer:
-        config = json.loads(config_buffer.read())
+    with open(main_config_path) as config_buffer:
+        main_config = json.loads(config_buffer.read())
+
+    dataset_config_path = main_config[dataset_name]
+    with open(dataset_config_path) as config_buffer:
+        dataset_config = json.loads(config_buffer.read())
     
-    # parse annotations of the training set
-    train_imgs, _ = parse_annotation_xml(config['train']['train_annot_folder'], 
-                                                    config['train']['train_image_folder'],
-                                                    config['labels'])
+    if dataset_config['annotation_type'] == 'xml':
+        # parse annotations of the training set
+        train_imgs, _ = parse_annotation_xml(dataset_config['train']['ann_folder'],
+                                                        dataset_config['train']['img_folder'],
+                                                        dataset_config['labels'])
+    else:
+        raise ValueError(
+            "'annotations_type' must be 'xml' not {}.".format(dataset_config['annotations_type']))
 
     # run k_mean to find the anchors
     annotation_dims = []

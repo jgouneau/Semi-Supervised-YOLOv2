@@ -9,10 +9,6 @@ from tqdm import tqdm
 
 import cv2
 
-MOBILENET_BACKEND_PATH = "./YOLOv2/backend_weights/mobilenet_backend.h5"
-SESSIONS_PATH = "./YOLOv2/sessions/"
-DATASETS_PATH = "./YOLOv2/datasets/"
-
 
 #############################
 # YOLO

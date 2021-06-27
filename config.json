@@ -1,0 +1,13 @@
+{
+    "backend_paths": {
+        "mobilenet": "./YOLOv2/src/core/backend_weights/mobilenet_backend.h5"
+    },
+
+    "datasets_paths": {
+        "raccoon": "./YOLOv2/datsets/raccoon/",
+        "wildlife": "./YOLOv2/datsets/wildlife/"
+    },
+
+    "agents_config_path" : "./YOLOv2/agents/config.json"
+
+}

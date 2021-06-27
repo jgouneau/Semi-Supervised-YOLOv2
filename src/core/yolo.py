@@ -13,16 +13,14 @@ import os
 import cv2
 
 from .utils import normalize, decode_netout, generate_yolo_grid
-from .batchGenerator import BatchGenerator
+from .preprocessing import BatchGenerator
 from .loss import Loss
 
-MOBILENET_BACKEND_PATH = "./YOLOv2/backend_weights/mobilenet_backend.h5"
 SESSIONS_PATH = "./YOLOv2/sessions/"
-DATASETS_PATH = "./YOLOv2/datasets/"
 
 class YOLO(object):
 
-  def __init__(self, name, input_size, labels, anchors):
+  def __init__(self, name, backend, input_size, labels, anchors, config):
         self._name = name
         self._input_size = input_size
         self.labels = list(labels)
@@ -30,24 +28,17 @@ class YOLO(object):
         self._nb_box = len(anchors) // 2
         self._anchors = anchors
 
-        # declare class variables
-        self._batch_size = None
-        self._object_scale = None
-        self._no_object_scale = None
-        self._coord_scale = None
-        self._class_scale = None
-        self.iou_threshold=0.5
-        self.score_threshold=0.5
-
         ##########################
         # Make the model
         ##########################
+
+        backend_path = config['backend_path'][backend]
 
         # make the feature extractor layers
         self._input_size = (self._input_size[0], self._input_size[1], 3)
         input_image = Input(shape=self._input_size)
         self._feature_extractor = MobileNet(input_shape=input_size, include_top=False);
-        self._feature_extractor.load_weights(MOBILENET_BACKEND_PATH)
+        self._feature_extractor.load_weights(backend_path)
         self._grid_h, self._grid_w = self._feature_extractor.output_shape[1:3]
         features = self._feature_extractor(input_image)
 
@@ -112,33 +103,24 @@ class YOLO(object):
 
   def load_weights(self, name):
         self._model.load_weights(self._weights_path + name)
-
-  def set_parameters(self, object_scale=5.0,
-                     no_object_scale=1.0,
-                     coord_scale=1.0,
-                     class_scale=1.0,
-                     iou_threshold=0.5,
-                     score_threshold=0.5):
-        self._object_scale = object_scale
-        self._no_object_scale = no_object_scale
-        self._coord_scale = coord_scale
-        self._class_scale = class_scale
-        self.iou_threshold=iou_threshold
-        self.score_threshold=score_threshold
     
   def train(self, train_data,
               valid_data,
               nb_epochs,
               batch_size,
               learning_rate,
+              lamb_obj,
+              lamb_noobj,
+              lamb_coord,
+              lamb_class,
               workers=3,
               max_queue_size=8,
               early_stop=True,
               tb_logdir="./"):
+              
         #######################################
         # Make train and validation generators
         #######################################
-        self._batch_size = batch_size
         generator_config = {
             'IMAGE_H': self._input_size[0],
             'IMAGE_W': self._input_size[1],
@@ -149,7 +131,7 @@ class YOLO(object):
             'LABELS': self.labels,
             'CLASS': len(self.labels),
             'ANCHORS': self._anchors,
-            'BATCH_SIZE': self._batch_size,
+            'BATCH_SIZE': batch_size,
         }
         train_generator = BatchGenerator(train_data,
                                          generator_config)
@@ -161,7 +143,7 @@ class YOLO(object):
         # Compile the model
         ############################################
         opt = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-        loss = Loss([self._grid_w, self._grid_h], lambda_coord=self._coord_scale, lambda_noobj=self._no_object_scale, lambda_obj=self._object_scale, lambda_class=self._class_scale)
+        loss = Loss([self._grid_w, self._grid_h], lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj, lambda_class=lamb_class)
         self._model.compile(loss=loss, optimizer=opt)
 
         ############################################
@@ -197,7 +179,7 @@ class YOLO(object):
                         workers=workers,
                         max_queue_size=max_queue_size)
         
-  def predict(self, image):
+  def predict(self, image, score_threshold, iou_threshold):
         if len(image.shape) == 2 and not self._gray_mode:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
@@ -210,6 +192,6 @@ class YOLO(object):
         else:
             input_image = image[np.newaxis, ..., np.newaxis]
         netout = self._model.predict(input_image)[0]
-        boxes = decode_netout(netout, self._anchors, self._nb_class, self.score_threshold, self.iou_threshold)
+        boxes = decode_netout(netout, self._anchors, self._nb_class, score_threshold, iou_threshold)
 
         return boxes
