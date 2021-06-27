@@ -3,8 +3,8 @@
     "labels":           ["buffalo", "elephant", "rhino", "zebra"],
 
     "train": {
-        "img_folder":   "widlife/trainset/img/",
-        "ann_folder":   "widlife/trainset/ann/"
+        "img_folder":   "wildlife/trainset/img/",
+        "ann_folder":   "wildlife/trainset/ann/"
     },
 
     "valid": {

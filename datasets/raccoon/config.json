@@ -3,8 +3,8 @@
     "labels":           ["raccoon"],
 
     "train": {
-        "img_folder":   "racoon/trainset/img/",
-        "ann_folder":   "racoon/trainset/ann/"
+        "img_folder":   "raccoon/trainset/img/",
+        "ann_folder":   "raccoon/trainset/ann/"
     },
 
     "valid": {
@@ -13,7 +13,7 @@
     },
 
     "test": {
-        "img_folder":   "racoon/testset/img/",
-        "ann_folder":   "racoon/testset/ann/"
+        "img_folder":   "raccoon/testset/img/",
+        "ann_folder":   "raccoon/testset/ann/"
     }
 }
