@@ -5,7 +5,7 @@
 
     "datasets_paths": {
         "raccoon": "./YOLOv2/datsets/raccoon/",
-        "wildlife": "./YOLOv2/datsets/wildlife/"
+        "wildlife": "./YOLOv2/datasets/wildlife/"
     },
 
     "agents_config_path" : "./YOLOv2/agents/config.json"

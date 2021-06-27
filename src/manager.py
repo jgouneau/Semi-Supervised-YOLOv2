@@ -8,7 +8,7 @@ def hire_agent(agent_name, dataset_name, main_config_path):
     with open(main_config_path) as config_buffer:
         main_config = json.loads(config_buffer.read())
 
-    dataset_path = main_config['datasets_config_paths'][dataset_name]
+    dataset_path = main_config['datasets_paths'][dataset_name]
     with open(dataset_path + "config.json") as config_buffer:
         dataset_config = json.loads(config_buffer.read())
 
