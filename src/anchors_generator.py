@@ -92,8 +92,8 @@ def generate_anchors(dataset_name, num_anchors, main_config_path):
     with open(main_config_path) as config_buffer:
         main_config = json.loads(config_buffer.read())
 
-    dataset_config_path = main_config[dataset_name]
-    with open(dataset_config_path) as config_buffer:
+    dataset_path = main_config['datasets_paths'][dataset_name]
+    with open(dataset_path + "config.json") as config_buffer:
         dataset_config = json.loads(config_buffer.read())
     
     if dataset_config['annotation_type'] == 'xml':

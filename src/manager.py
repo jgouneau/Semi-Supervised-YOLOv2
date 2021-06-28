@@ -16,10 +16,11 @@ def hire_agent(agent_name, dataset_name, main_config_path):
     with open(agent_config_path) as config_buffer:
         agent_config = json.loads(config_buffer.read())
     
-    backend = agent_config['backend']
-    input_size_w = agent_config['input_size_w']
-    input_size_h = agent_config['input_size_h']
+    backend = agent_config['model']['backend']
+    input_size_w = agent_config['model']['input_size_w']
+    input_size_h = agent_config['model']['input_size_h']
     input_size = (input_size_w, input_size_h)
+    
     labels = dataset_config['labels']
     anchors = dataset_config['anchors']
 

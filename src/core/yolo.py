@@ -16,7 +16,7 @@ from .utils import normalize, decode_netout, generate_yolo_grid
 from .preprocessing import BatchGenerator
 from .loss import Loss
 
-SESSIONS_PATH = "./YOLOv2/sessions/"
+SESSIONS_PATH = "./YOLOv2/agents/"
 
 class YOLO(object):
 
@@ -32,12 +32,12 @@ class YOLO(object):
         # Make the model
         ##########################
 
-        backend_path = config['backend_path'][backend]
+        backend_path = config['backend_paths'][backend]
 
         # make the feature extractor layers
         self._input_size = (self._input_size[0], self._input_size[1], 3)
         input_image = Input(shape=self._input_size)
-        self._feature_extractor = MobileNet(input_shape=input_size, include_top=False);
+        self._feature_extractor = MobileNet(input_shape=self._input_size, include_top=False);
         self._feature_extractor.load_weights(backend_path)
         self._grid_h, self._grid_w = self._feature_extractor.output_shape[1:3]
         features = self._feature_extractor(input_image)

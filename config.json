@@ -4,7 +4,7 @@
     },
 
     "datasets_paths": {
-        "raccoon": "./YOLOv2/datsets/raccoon/",
+        "raccoon": "./YOLOv2/datasets/raccoon/",
         "wildlife": "./YOLOv2/datasets/wildlife/"
     },
 
