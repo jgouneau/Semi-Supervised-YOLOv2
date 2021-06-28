@@ -98,8 +98,8 @@ def generate_anchors(dataset_name, num_anchors, main_config_path):
     
     if dataset_config['annotation_type'] == 'xml':
         # parse annotations of the training set
-        train_imgs, _ = parse_annotation_xml(dataset_config['train']['ann_folder'],
-                                                        dataset_config['train']['img_folder'],
+        train_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['train']['ann_folder'],
+                                                        dataset_path + dataset_config['train']['img_folder'],
                                                         dataset_config['labels'])
     else:
         raise ValueError(
