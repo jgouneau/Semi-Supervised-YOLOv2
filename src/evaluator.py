@@ -32,9 +32,9 @@ def evaluate_agent(agent, dataset_name, main_config_path):
                                                         dataset_config['labels'])
 
         # parse annotations of the validation set, if any.
-        if os.path.exists(dataset_config['valid']['ann_folder']):
-            valid_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['valid']['ann_folder'], 
-                                                            dataset_path + dataset_config['valid']['img_folder'],
+        if os.path.exists(dataset_path + dataset_config['test']['ann_folder']):
+            valid_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['test']['ann_folder'], 
+                                                            dataset_path + dataset_config['test']['img_folder'],
                                                             dataset_config['labels'])
         else:
             without_valid_imgs = True

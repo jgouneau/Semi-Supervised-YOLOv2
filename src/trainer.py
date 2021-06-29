@@ -63,16 +63,16 @@ def train_agent(agent, dataset_name, main_config_path):
     #   Start the training process 
     ###############################
 
-    agent.train(train_imgs=train_imgs,
-               valid_imgs=valid_imgs,
+    agent.train(train_data=train_imgs,
+               valid_data=valid_imgs,
                nb_epochs=agent_config['train']['nb_epochs'],
                batch_size=agent_config['train']['batch_size'],
                learning_rate=agent_config['train']['learning_rate'],
                # TODO : implémenter le warmup
                #warmup_epochs=config['train']['warmup_epochs'],
-               #workers=agent_config['train']['workers'],
-               #max_queue_size=agent_config['train']['max_queue_size']
                lamb_obj = agent_config['train']['lamb_obj'],
                lamb_noobj = agent_config['train']['lamb_noobj'],
                lamb_coord = agent_config['train']['lamb_coord'],
-               lamb_class = agent_config['train']['lamb_class'])
+               lamb_class = agent_config['train']['lamb_class'],
+               workers=agent_config['train']['workers'],
+               max_queue_size=agent_config['train']['max_queue_size'])

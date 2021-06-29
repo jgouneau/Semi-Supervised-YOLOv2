@@ -84,7 +84,7 @@ class MapEvaluation(keras.callbacks.Callback):
             raw_height, raw_width, _ = raw_image.shape
 
             # make the boxes and the labels
-            pred_boxes = self._yolo.predict(raw_image)
+            pred_boxes = self._yolo.predict(raw_image, self._score_threshold, self._iou_threshold)
 
             score = np.array([box.score for box in pred_boxes])
             pred_labels = np.array([box.label for box in pred_boxes])

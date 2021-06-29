@@ -13,11 +13,13 @@
         "lamb_obj":             1.0,
         "lamb_noobj":           0.5,
         "lamb_coord":           1.0,
-        "lamb_class":           1.0
+        "lamb_class":           1.0,
+        "workers":              3,
+        "max_queue_size":       8
     },
 
     "predict": {
-        "iou_threshold":            0.7,
+        "iou_threshold":            0.5,
         "score_threshold":          0.5
     }
 

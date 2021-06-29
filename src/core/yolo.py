@@ -61,7 +61,7 @@ class YOLO(object):
         out_wh = Reshape((self._grid_h, self._grid_w, self._nb_box, 2))(out_wh)
         out_wh = K.exp(out_wh)
         anch = tf.reshape(self._anchors, (self._nb_box, 2))
-        out_wh = (out_wh * anch) / [self._grid_h, self._grid_w]
+        out_wh = (out_wh * anch)
 
         out_c = Conv2D(self._nb_box * 1,
                         (1, 1), strides=(1, 1),
@@ -134,7 +134,8 @@ class YOLO(object):
             'BATCH_SIZE': batch_size,
         }
         train_generator = BatchGenerator(train_data,
-                                         generator_config)
+                                         generator_config,
+                                         jitter=True)
         valid_generator = BatchGenerator(valid_data,
                                          generator_config,
                                          jitter=False)

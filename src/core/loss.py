@@ -1,7 +1,6 @@
 import numpy as np
 from tensorflow.keras import backend as K
 
-
 class Loss(object):
 
     def __init__(self, grid_size, lambda_coord=5, lambda_noobj=1, lambda_obj=1, lambda_class=1):
@@ -20,7 +19,7 @@ class Loss(object):
         b_xy_true = y_true[..., 0:2]
         b_wh_true = y_true[..., 2:4]
 
-        indicator_coord = K.expand_dims(y_true[..., 4], axis=-1) * self.grid_size
+        indicator_coord = K.expand_dims(y_true[..., 4], axis=-1)
 
         loss_xy = K.sum(K.square(b_xy_true - b_xy_pred) * indicator_coord) * self.lambda_coord
         loss_wh = K.sum(K.square(K.sqrt(b_wh_true) - K.sqrt(b_wh_pred)) * indicator_coord) * self.lambda_coord
