@@ -21,7 +21,7 @@ def normalize(image):
 
     return image
 
-def decode_netout(netout, anchors, nb_class, obj_threshold=0.5, nms_threshold=0.3):
+def decode_netout(netout, nb_class, obj_threshold=0.5, nms_threshold=0.3):
     grid_h, grid_w, nb_box = netout.shape[:3]
 
     boxes = []

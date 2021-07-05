@@ -34,8 +34,8 @@ class BatchGenerator(Sequence):
         self._aug_pipe = iaa.Sequential(
             [
                 # apply the following augmenters to most images
-                iaa.Fliplr(0.5),  # horizontally flip 50% of all images
-                iaa.Flipud(0.2),  # vertically flip 20% of all images
+                iaa.Fliplr(1.0),  # horizontally flip 50% of all images
+                iaa.Flipud(0.0),  # vertically flip 20% of all images
                 sometimes(iaa.Crop(percent=(0, 0.1))), # crop images by 0-10% of their height/width
                 sometimes(iaa.Affine(
                     scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},  # scale images to 80-120% of their size, per axis
@@ -48,7 +48,7 @@ class BatchGenerator(Sequence):
                 )),
                 # execute 0 to 5 of the following (less important) augmenters per image
                 # don't execute all of them, as that would often be way too strong
-                iaa.SomeOf((0, 5),
+                iaa.SomeOf((0, 0),
                            [
                                sometimes(iaa.Superpixels(p_replace=(0, 1.0), n_segments=(20, 200))),
                                iaa.OneOf([
@@ -93,6 +93,9 @@ class BatchGenerator(Sequence):
 
     def size(self):
         return len(self._data)
+
+    def load_data(self, i):
+      return self._data[i]
 
     def load_annotation(self, i):
         annots = []
@@ -250,7 +253,7 @@ class BatchGenerator(Sequence):
         image = cv2.resize(image, (self._config['IMAGE_W'], self._config['IMAGE_H']))
         if self._config['IMAGE_C'] == 1:
             image = image[..., np.newaxis]
-        image = image[..., ::-1]  # make it RGB (it is important for normalization of some backends)
+            image = image[..., ::-1]  # make it RGB (it is important for normalization of some backends)
 
         # fix object's position and size
         for obj in all_objs:

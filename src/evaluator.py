@@ -6,7 +6,7 @@ import json
 import os
 
 
-def evaluate_agent(agent, dataset_name, main_config_path):
+def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
     
     enable_memory_growth()
 
@@ -38,6 +38,7 @@ def evaluate_agent(agent, dataset_name, main_config_path):
                                                             dataset_config['labels'])
         else:
             without_valid_imgs = True
+            valid_imgs = default_valid_imgs
     else:
         raise ValueError("'annotations_type' must be 'xml' not {}.".format(dataset_config['annotations_type']))
 
@@ -67,7 +68,7 @@ def evaluate_agent(agent, dataset_name, main_config_path):
                 'TRUE_BOX_BUFFER': 10 # yolo._max_box_per_image,
             } 
     if not without_valid_imgs:
-        valid_generator = BatchGenerator(valid_imgs, 
+        valid_generator = BatchGenerator(valid_imgs,
                                          generator_config,
                                          jitter=False)
         valid_eval = MapEvaluation(agent, valid_generator,

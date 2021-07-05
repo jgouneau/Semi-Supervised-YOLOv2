@@ -37,8 +37,17 @@ class YOLO(object):
         # make the feature extractor layers
         self._input_size = (self._input_size[0], self._input_size[1], 3)
         input_image = Input(shape=self._input_size)
-        self._feature_extractor = MobileNet(input_shape=self._input_size, include_top=False);
-        self._feature_extractor.load_weights(backend_path)
+
+        mobilenet = MobileNet(input_shape=self._input_size, include_top=False)
+        try:
+            print("Loading pretrained weights: " + backend_path)
+            mobilenet.load_weights(backend_path)
+        except:
+            print("Unable to load backend weights. Using a fresh model")
+        x = mobilenet(input_image)
+        self._feature_extractor = Model(input_image, x, name='MobileNet_backend')
+        self._feature_extractor.trainable = False
+
         self._grid_h, self._grid_w = self._feature_extractor.output_shape[1:3]
         features = self._feature_extractor(input_image)
 
@@ -51,7 +60,7 @@ class YOLO(object):
         out_xy = Reshape((self._grid_h, self._grid_w, self._nb_box, 2))(out_xy)
         out_xy = K.sigmoid(out_xy)
         c_grid = generate_yolo_grid([self._grid_h, self._grid_w], self._nb_box)
-        out_xy = (out_xy + c_grid) / [self._grid_h, self._grid_w]
+        out_xy = (out_xy + c_grid) / [self._grid_w, self._grid_h]
 
         out_wh = Conv2D(self._nb_box * 2,
                         (1, 1), strides=(1, 1),
@@ -101,6 +110,10 @@ class YOLO(object):
         # print a summary of the whole model
         print(self._model.summary())
 
+        for i in range(self._nb_box):
+          self._anchors[2*i] = self._anchors[2*i] * self._grid_w
+          self._anchors[2*i+1] = self._anchors[2*i+1] * self._grid_h
+
   def load_weights(self, name):
         self._model.load_weights(self._weights_path + name)
     
@@ -113,6 +126,7 @@ class YOLO(object):
               lamb_noobj,
               lamb_coord,
               lamb_class,
+              warmup_epochs,
               workers=3,
               max_queue_size=8,
               early_stop=True,
@@ -135,7 +149,7 @@ class YOLO(object):
         }
         train_generator = BatchGenerator(train_data,
                                          generator_config,
-                                         jitter=True)
+                                         jitter=False)
         valid_generator = BatchGenerator(valid_data,
                                          generator_config,
                                          jitter=False)
@@ -144,14 +158,16 @@ class YOLO(object):
         # Compile the model
         ############################################
         opt = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-        loss = Loss([self._grid_w, self._grid_h], lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj, lambda_class=lamb_class)
+        loss = Loss(grid_size=[self._grid_w, self._grid_h],
+                             lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj,
+                             lambda_class=lamb_class)
         self._model.compile(loss=loss, optimizer=opt)
 
         ############################################
         # Make a few callbacks
         ############################################
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
-                                      patience = 10, min_lr = 0.000001, verbose = 1)
+                                      patience = 5, min_lr = 0.000001, verbose = 1)
         tensorboard_cb = TensorBoard(log_dir=tb_logdir,
                                      histogram_freq=0,
                                      write_graph=True,
@@ -162,13 +178,14 @@ class YOLO(object):
                                         save_best_only=True,
                                         mode='min',
                                         save_freq='epoch')
+        warmup = WarmupScheduler(warmup_epochs, learning_rate)
         # save_best_map = MapEvaluation(self, valid_generator,
         #                               save_best=False,
         #                               save_name=root + "_bestMap" + ext,
         #                               tensorboard=tensorboard_cb,
         #                               iou_threshold=iou_threshold,
         #                               score_threshold=score_threshold)
-        callbacks = [reduce_lr, save_best_loss]
+        callbacks = [reduce_lr, save_best_loss, warmup]
 
         #############################
         # Start the training process
@@ -183,11 +200,11 @@ class YOLO(object):
   def predict(self, image, score_threshold, iou_threshold):
         if len(image.shape) == 2 and not self._gray_mode:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+            image = image[..., ::-1]  # make it RGB (it is important for normalization of some backends)
 
         image = cv2.resize(image, (self._input_size[1], self._input_size[0]))
-        image = image[..., ::-1]  # make it RGB (it is important for normalization of some backends)
-
         image = normalize(image)
+        
         if len(image.shape) == 3:
             input_image = image[np.newaxis, :]
         else:
