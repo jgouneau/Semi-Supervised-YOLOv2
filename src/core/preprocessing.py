@@ -11,7 +11,6 @@ import cv2
 
 from .utils import BoundBox, bbox_iou, normalize
 
-
 class BatchGenerator(Sequence):
     def __init__(self, data, config, shuffle=True, jitter=True):
 
@@ -25,7 +24,7 @@ class BatchGenerator(Sequence):
                          for i in range(int(len(config['ANCHORS']) // 2))]
 
         # augmentors by https://github.com/aleju/imgaug
-        sometimes = lambda aug: iaa.Sometimes(0.0, aug)
+        sometimes = lambda aug: iaa.Sometimes(0.5, aug)
 
         # Define our sequence of augmentation steps that will be applied to every image
         # All augmenters with per_channel=0.5 will sample one value _per image_
@@ -34,7 +33,7 @@ class BatchGenerator(Sequence):
         self._aug_pipe = iaa.Sequential(
             [
                 # apply the following augmenters to most images
-                iaa.Fliplr(1.0),  # horizontally flip 50% of all images
+                iaa.Fliplr(0.5),  # horizontally flip 50% of all images
                 iaa.Flipud(0.0),  # vertically flip 20% of all images
                 sometimes(iaa.Crop(percent=(0, 0.1))), # crop images by 0-10% of their height/width
                 sometimes(iaa.Affine(
@@ -48,7 +47,7 @@ class BatchGenerator(Sequence):
                 )),
                 # execute 0 to 5 of the following (less important) augmenters per image
                 # don't execute all of them, as that would often be way too strong
-                iaa.SomeOf((0, 0),
+                iaa.SomeOf((0, 5),
                            [
                                sometimes(iaa.Superpixels(p_replace=(0, 1.0), n_segments=(20, 200))),
                                iaa.OneOf([

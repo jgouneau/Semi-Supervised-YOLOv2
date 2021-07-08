@@ -2,7 +2,6 @@ import json
 
 from core.yolo import YOLO
 
-
 def hire_agent(agent_name, dataset_name, main_config_path):
 
     with open(main_config_path) as config_buffer:

@@ -3,21 +3,20 @@ from tensorflow.keras import backend as K
 
 class Loss(object):
 
-    def __init__(self, grid_size, lambda_coord=5, lambda_noobj=0.5, lambda_obj=1, lambda_class=1):
+    def __init__(self, lambda_coord=5, lambda_noobj=0.5, lambda_obj=1, lambda_class=1):
         self.__name__ = 'yolo_loss'
 
         self.lambda_coord = lambda_coord
         self.lambda_noobj = lambda_noobj
         self.lambda_obj = lambda_obj
         self.lambda_class = lambda_class
-        self.grid_size = grid_size
 
     def coord_loss(self, y_true, y_pred):
-        b_xy_pred = y_pred[..., :2] * self.grid_size
-        b_wh_pred = y_pred[..., 2:4] * self.grid_size
+        b_xy_pred = y_pred[..., :2]
+        b_wh_pred = y_pred[..., 2:4]
 
-        b_xy_true = y_true[..., 0:2] * self.grid_size
-        b_wh_true = y_true[..., 2:4] * self.grid_size
+        b_xy_true = y_true[..., 0:2]
+        b_wh_true = y_true[..., 2:4]
 
         indicator_coord = K.expand_dims(y_true[..., 4], axis=-1)
 
@@ -39,10 +38,7 @@ class Loss(object):
         return loss_obj
 
     def class_loss(self, y_true, y_pred):
-        # TODO: should we use focal loss?
         p_c_pred = K.softmax(y_pred[..., 5:])
-        # TODO: # https://github.com/rodrigo2019/keras_yolo2/issues/25
-        # K.print_tensor(y_pred.shape)
         p_c_true = K.one_hot(K.argmax(y_true[..., 5:], axis=-1), y_pred.shape[4] - 5)
         loss_class_arg = K.sum(K.square(p_c_true - p_c_pred), axis=-1)
 

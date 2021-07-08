@@ -5,7 +5,6 @@ from core.evaluation import MapEvaluation
 import json
 import os
 
-
 def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
     
     enable_memory_growth()
@@ -32,7 +31,7 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
                                                         dataset_config['labels'])
 
         # parse annotations of the validation set, if any.
-        if os.path.exists(dataset_path + dataset_config['test']['ann_folder']):
+        if dataset_config['test']['ann_folder'] != "":
             valid_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['test']['ann_folder'], 
                                                             dataset_path + dataset_config['test']['img_folder'],
                                                             dataset_config['labels'])
@@ -66,19 +65,19 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
                 'ANCHORS': agent._anchors,
                 'BATCH_SIZE': 4,
                 'TRUE_BOX_BUFFER': 10 # yolo._max_box_per_image,
-            } 
-    if not without_valid_imgs:
-        valid_generator = BatchGenerator(valid_imgs,
-                                         generator_config,
-                                         jitter=False)
-        valid_eval = MapEvaluation(agent, valid_generator,
-                                   iou_threshold=iou_threshold,
-                                   score_threshold=score_threshold)
+            }
+            
+    valid_generator = BatchGenerator(valid_imgs,
+                                      generator_config,
+                                      jitter=False)
+    valid_eval = MapEvaluation(agent, valid_generator,
+                                iou_threshold=iou_threshold,
+                                score_threshold=score_threshold)
 
-        _map, average_precisions = valid_eval.evaluate_map()
-        for label, average_precision in average_precisions.items():
-            print(agent.labels[label], '{:.4f}'.format(average_precision))
-        print('validation dataset mAP: {:.4f}\n'.format(_map))
+    _map, average_precisions = valid_eval.evaluate_map()
+    for label, average_precision in average_precisions.items():
+        print(agent.labels[label], '{:.4f}'.format(average_precision))
+    print('validation dataset mAP: {:.4f}\n'.format(_map))
 
     train_generator = BatchGenerator(train_imgs, 
                                      generator_config,

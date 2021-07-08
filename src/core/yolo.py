@@ -15,6 +15,7 @@ import cv2
 from .utils import normalize, decode_netout, generate_yolo_grid
 from .preprocessing import BatchGenerator
 from .loss import Loss
+from .scheduler import WarmupScheduler
 
 SESSIONS_PATH = "./YOLOv2/agents/"
 
@@ -158,8 +159,7 @@ class YOLO(object):
         # Compile the model
         ############################################
         opt = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-        loss = Loss(grid_size=[self._grid_w, self._grid_h],
-                             lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj,
+        loss = Loss(lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj,
                              lambda_class=lamb_class)
         self._model.compile(loss=loss, optimizer=opt)
 
@@ -210,6 +210,6 @@ class YOLO(object):
         else:
             input_image = image[np.newaxis, ..., np.newaxis]
         netout = self._model.predict(input_image)[0]
-        boxes = decode_netout(netout, self._anchors, self._nb_class, score_threshold, iou_threshold)
+        boxes = decode_netout(netout, self._nb_class, score_threshold, iou_threshold)
 
         return boxes

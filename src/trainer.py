@@ -6,7 +6,6 @@ import numpy as np
 from core.yolo import YOLO
 from core.utils import enable_memory_growth, parse_annotation_xml
 
-
 def train_agent(agent, dataset_name, main_config_path):
     enable_memory_growth()
 
@@ -63,11 +62,11 @@ def train_agent(agent, dataset_name, main_config_path):
     #   Start the training process 
     ###############################
 
-    agent.train(train_data=train_imgs,
-               valid_data=valid_imgs,
-               nb_epochs=20, #agent_config['train']['nb_epochs'],
-               batch_size=agent_config['train']['batch_size'],
-               learning_rate=5e-4, #agent_config['train']['learning_rate'],
+    agent.train(train_data = train_imgs,
+               valid_data = valid_imgs,
+               nb_epochs = agent_config['train']['nb_epochs'],
+               batch_size = agent_config['train']['batch_size'],
+               learning_rate = agent_config['train']['learning_rate'],
                warmup_epochs = agent_config['train']['warmup_epochs'],
                lamb_obj = agent_config['train']['lamb_obj'],
                lamb_noobj = agent_config['train']['lamb_noobj'],
