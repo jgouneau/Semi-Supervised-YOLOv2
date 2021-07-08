@@ -14,7 +14,7 @@
     },
 
     "test": {
-        "img_folder":   "",
-        "ann_folder":   ""
+        "img_folder":   "testset/img/",
+        "ann_folder":   "testset/ann/"
     }
 }
