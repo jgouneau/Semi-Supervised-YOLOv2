@@ -30,7 +30,7 @@ class Loss(object):
         obj_conf_true = y_true[..., 4]
         obj_conf_pred = y_pred[..., 4]
 
-        indicator_noobj = (1 - y_true[..., 4]) * self.lambda_noobj #* K.cast(best_ious < self.iou_filter, np.float32)
+        indicator_noobj = (1 - y_true[..., 4]) * self.lambda_noobj
         indicator_obj = y_true[..., 4] * self.lambda_obj
         indicator_obj_noobj = indicator_obj + indicator_noobj
 

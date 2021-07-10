@@ -4,13 +4,15 @@
     "annotation_type":  "xml",
 
     "train": {
-        "img_folder":   "trainset/labelled/img/",
-        "ann_folder":   "trainset/labelled/ann/"
-    },
-
-    "valid": {
-        "img_folder":   "",
-        "ann_folder":   ""
+        "labelled": {
+            "img_folder":   "trainset/labelled/img/",
+            "ann_folder":   "trainset/labelled/ann/"
+        },
+        
+        "unlabelled": {
+            "img_folder":   "trainset/unlabelled/img/",
+            "ann_folder":   "trainset/unlabelled/ann/"
+        }
     },
 
     "test": {

@@ -159,8 +159,7 @@ class YOLO(object):
         # Compile the model
         ############################################
         opt = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-        loss = Loss(lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj,
-                             lambda_class=lamb_class)
+        loss = Loss(lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj, lambda_class=lamb_class)
         self._model.compile(loss=loss, optimizer=opt)
 
         ############################################

@@ -161,12 +161,11 @@ class BoundBox:
     def get_label(self):
         if self.label == -1:
             self.label = np.argmax(self.classes)
-
         return self.label
 
     def get_score(self):
         if self.score == -1:
-            self.score = self.classes[self.get_label()]
+            self.score = self.classes[self.get_label()]*self.c
         return self.score
 
     def __repr__(self):
