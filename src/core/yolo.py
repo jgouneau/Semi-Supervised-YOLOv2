@@ -127,6 +127,7 @@ class YOLO(object):
               lamb_noobj,
               lamb_coord,
               lamb_class,
+              lamb_u,
               warmup_epochs,
               workers=3,
               max_queue_size=8,
@@ -159,7 +160,7 @@ class YOLO(object):
         # Compile the model
         ############################################
         opt = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-        loss = Loss(lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj, lambda_class=lamb_class)
+        loss = Loss(lambda_coord=lamb_coord, lambda_noobj=lamb_noobj, lambda_obj=lamb_obj, lambda_class=lamb_class, lambda_u=lamb_u)
         self._model.compile(loss=loss, optimizer=opt)
 
         ############################################
@@ -196,7 +197,7 @@ class YOLO(object):
                         workers=workers,
                         max_queue_size=max_queue_size)
         
-  def predict(self, image, score_threshold, iou_threshold):
+  def predict(self, image, obj_threshold, nms_threshold):
         if len(image.shape) == 2 and not self._gray_mode:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
             image = image[..., ::-1]  # make it RGB (it is important for normalization of some backends)
@@ -209,6 +210,6 @@ class YOLO(object):
         else:
             input_image = image[np.newaxis, ..., np.newaxis]
         netout = self._model.predict(input_image)[0]
-        boxes = decode_netout(netout, self._nb_class, score_threshold, iou_threshold)
+        boxes = decode_netout(netout, self._nb_class, obj_threshold, nms_threshold)
 
         return boxes

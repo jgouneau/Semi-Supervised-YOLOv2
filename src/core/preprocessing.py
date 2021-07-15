@@ -30,7 +30,7 @@ class BatchGenerator(Sequence):
         # All augmenters with per_channel=0.5 will sample one value _per image_
         # in 50% of all cases. In all other cases they will sample new values
         # _per channel_.
-        self._aug_pipe = iaa.Sequential(
+        self._standr_aug_pipe = iaa.Sequential(
             [
                 # apply the following augmenters to most images
                 iaa.Fliplr(0.5),  # horizontally flip 50% of all images
@@ -80,6 +80,8 @@ class BatchGenerator(Sequence):
             ],
             random_order=True
         )
+
+        self._strong_aug_pipe = self._standr_aug_pipe
 
         if shuffle:
             np.random.shuffle(self._data)
@@ -131,7 +133,7 @@ class BatchGenerator(Sequence):
                             self._config['IMAGE_C']))  # input images
 
         y_batch = np.zeros((r_bound - l_bound, self._config['GRID_H'], self._config['GRID_W'], self._config['BOX'],
-                            4 + 1 + len(self._config['LABELS'])))  # desired network output
+                            4 + 3 + len(self._config['LABELS'])))  # desired network output
 
         anchors_populated_map = np.zeros((r_bound - l_bound, self._config['GRID_H'], self._config['GRID_W'],
                                           self._config['BOX']))
@@ -140,6 +142,7 @@ class BatchGenerator(Sequence):
         for train_instance in self._data[l_bound:r_bound]:
             # augment input image and fix object's position and size
             img, all_objs = self.aug_image(train_instance, jitter=self._jitter)
+            p_labelled = img['pseudo_labelled']
 
             for obj in all_objs:
                 # check if it is a valid annotion
@@ -156,6 +159,7 @@ class BatchGenerator(Sequence):
                     obj_grid_y = int(np.floor(obj_center_y * self._config['GRID_H']))
 
                     if obj_grid_x < self._config['GRID_W'] and obj_grid_y < self._config['GRID_H']:
+                        obj_pl_conf = obj['pl_confidence']
                         obj_indx = self._config['LABELS'].index(obj['name'])
 
                         obj_w = (obj['xmax'] - obj['xmin']) / scale_w
@@ -181,7 +185,7 @@ class BatchGenerator(Sequence):
                         # assign ground truth x, y, w, h, confidence and class probs to y_batch
                         self._change_obj_position(y_batch, anchors_populated_map,
                                                   [instance_count, obj_grid_y, obj_grid_x, best_anchor_idx, obj_indx],
-                                                  box, max_iou)
+                                                  box, p_labelled, obj_pl_conf, max_iou)
 
             # assign input image to x_batch
             x_batch[instance_count] = normalize(img)
@@ -194,13 +198,15 @@ class BatchGenerator(Sequence):
         if self._shuffle:
             np.random.shuffle(self._data)
     
-    def _change_obj_position(self, y_batch, anchors_map, idx, box, iou):
+    def _change_obj_position(self, y_batch, anchors_map, idx, box, p_labelled, obj_pl_conf, iou):
         bkp_box = y_batch[idx[0], idx[1], idx[2], idx[3], 0:4].copy()
         anchors_map[idx[0], idx[1], idx[2], idx[3]] = iou
         y_batch[idx[0], idx[1], idx[2], idx[3], 0:4] = box
-        y_batch[idx[0], idx[1], idx[2], idx[3], 4] = 1.
-        y_batch[idx[0], idx[1], idx[2], idx[3], 5:] = 0  # clear old values
-        y_batch[idx[0], idx[1], idx[2], idx[3], 4 + 1 + idx[4]] = 1
+        y_batch[idx[0], idx[1], idx[2], idx[3], 4] = p_labelled
+        y_batch[idx[0], idx[1], idx[2], idx[3], 5] = 1.
+        y_batch[idx[0], idx[1], idx[2], idx[3], 6] = obj_pl_conf
+        y_batch[idx[0], idx[1], idx[2], idx[3], 7:] = 0  # clear old values
+        y_batch[idx[0], idx[1], idx[2], idx[3], 4 + 3 + idx[4]] = 1
 
         shifted_box = BoundBox(0, 0, bkp_box[2], bkp_box[3])
 
@@ -208,7 +214,7 @@ class BatchGenerator(Sequence):
             anchor = self._anchors[i]
             iou = bbox_iou(shifted_box, anchor)
             if iou > anchors_map[idx[0], idx[1], idx[2], i]:
-                self._change_obj_position(y_batch, anchors_map, [idx[0], idx[1], idx[2], i, idx[4]], bkp_box, iou)
+                self._change_obj_position(y_batch, anchors_map, [idx[0], idx[1], idx[2], i, idx[4]], bkp_box, p_labelled, obj_pl_conf, iou)
                 break
     
     def aug_image(self, train_instance, jitter):
@@ -232,9 +238,13 @@ class BatchGenerator(Sequence):
                 # use label field to later match it with final boxes
                 bbs.append(BoundingBox(x1=xmin, x2=xmax, y1=ymin, y2=ymax, label=i))
             bbs = BoundingBoxesOnImage(bbs, shape=image.shape)
-            image, bbs = self._aug_pipe(image=image, bounding_boxes=bbs)
-            bbs = bbs.remove_out_of_image().clip_out_of_image()
 
+            if train_instance['pseudo_labelled']:
+                image, bbs = self._strong_aug_pipe(image=image, bounding_boxes=bbs)
+            else:
+                image, bbs = self._standr_aug_pipe(image=image, bounding_boxes=bbs)
+
+            bbs = bbs.remove_out_of_image().clip_out_of_image()
             if len(bbs.bounding_boxes) < len(all_objs):
                 print("Some boxes were removed during augmentations.")
 

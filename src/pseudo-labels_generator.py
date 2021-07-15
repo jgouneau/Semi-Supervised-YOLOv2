@@ -52,7 +52,7 @@ def gen_xml(ann_path, xml_name, img_name, H, W, C, anns):
   tree.write(ann_path + xml_name)
 
 
-def agent_gen_pseudo_labels(agent, dataset_name, threshold, main_config_path):
+def agent_gen_pseudo_labels(agent, dataset_name, conf_threshold, main_config_path):
   enable_memory_growth()
 
   with open(main_config_path) as config_buffer:    
@@ -88,7 +88,7 @@ def agent_gen_pseudo_labels(agent, dataset_name, threshold, main_config_path):
       ymin = int(box.ymin * H)
       xmax = int(box.xmax * W)
       ymax = int(box.ymax * H)
-      # TODO : threshold
-      ann = [clas, xmin, ymin, xmax, ymax]
-      anns.append(ann)
+      if box.get_conf() > conf_threshold:
+        ann = [clas, xmin, ymin, xmax, ymax]
+        anns.append(ann)
     gen_xml(ann_path, xml_name, img_name, H, W, C, anns)

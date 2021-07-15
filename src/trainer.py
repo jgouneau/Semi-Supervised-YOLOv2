@@ -6,7 +6,7 @@ import numpy as np
 from core.yolo import YOLO
 from core.utils import enable_memory_growth, parse_annotation_xml
 
-def train_agent(agent, dataset_name, main_config_path):
+def train_agent(agent, dataset_name, main_config_path, train_mode='supervised'):
     enable_memory_growth()
 
     with open(main_config_path) as config_buffer:    
@@ -24,17 +24,34 @@ def train_agent(agent, dataset_name, main_config_path):
     #   Parse the annotations 
     ###############################
 
+    if dataset_config['learning_type'] == "supervised":
+        train_folder = dataset_config['train']
+        unlab_train_folder = 0
+    else:
+        train_folder = dataset_config['train']['labelled']
+        unlab_train_folder = dataset_config['train']['unlabelled']
+    test_folder = dataset_config['test']
+
     if dataset_config['annotation_type'] == 'xml':
         # parse annotations of the training set
-        train_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['train']['ann_folder'], 
-                                                        dataset_path + dataset_config['train']['img_folder'],
+        train_imgs = parse_annotation_xml(dataset_path + train_folder['ann_folder'],
+                                          dataset_path + train_folder['img_folder'],
+                                          dataset_config['labels'])
+        if train_mode == "semi-supervised":
+            if unlab_train_folder != 0:
+                unlab_train_imgs = parse_annotation_xml(dataset_path + unlab_train_folder['ann_folder'], 
+                                                        dataset_path + unlab_train_folder['img_folder'],
                                                         dataset_config['labels'])
+                train_imgs = train_imgs + unlab_train_imgs
+            else:
+                raise ValueError(
+                    "no unlabelled folder for semi-supervised learning")
 
         # parse annotations of the validation set, if any.
         if dataset_config['test']['ann_folder'] != "":
-            valid_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['test']['ann_folder'], 
-                                                            dataset_path + dataset_config['test']['img_folder'],
-                                                            dataset_config['labels'])
+            valid_imgs = parse_annotation_xml(dataset_path + test_folder['ann_folder'], 
+                                              dataset_path + test_folder['img_folder'],
+                                              dataset_config['labels'])
             split = False
         else:
             split = True
@@ -48,15 +65,6 @@ def train_agent(agent, dataset_name, main_config_path):
 
         valid_imgs = train_imgs[train_valid_split:]
         train_imgs = train_imgs[:train_valid_split]
-
-    #########################################
-    #   Load the pretrained weights (if any) 
-    #########################################
-
-    # TODO : adapter cette partie
-    #if os.path.exists(agent_config['train']['pretrained_weights']):
-    #    print("Loading pre-trained weights in", agent_config['train']['pretrained_weights'])
-    #    agent.load_weights(agent_config['train']['pretrained_weights'])
 
     ###############################
     #   Start the training process 
@@ -72,6 +80,7 @@ def train_agent(agent, dataset_name, main_config_path):
                lamb_noobj = agent_config['train']['lamb_noobj'],
                lamb_coord = agent_config['train']['lamb_coord'],
                lamb_class = agent_config['train']['lamb_class'],
+               lamb_u = agent_config['train']['lamb_u'],
                workers=agent_config['train']['workers'],
                max_queue_size=agent_config['train']['max_queue_size'])
     

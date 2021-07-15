@@ -20,7 +20,8 @@ class MapEvaluation(keras.callbacks.Callback):
 
     def __init__(self, yolo, generator,
                  iou_threshold=0.5,
-                 score_threshold=0.5,
+                 nms_threshold=0.5,
+                 obj_threshold=0.5,
                  save_path=None,
                  period=1,
                  save_best=False,
@@ -31,7 +32,8 @@ class MapEvaluation(keras.callbacks.Callback):
         self._yolo = yolo
         self._generator = generator
         self._iou_threshold = iou_threshold
-        self._score_threshold = score_threshold
+        self._nms_threshold = nms_threshold
+        self._obj_threshold = obj_threshold
         self._save_path = save_path
         self._period = period
         self._save_best = save_best
@@ -84,7 +86,7 @@ class MapEvaluation(keras.callbacks.Callback):
             raw_height, raw_width, _ = raw_image.shape
 
             # make the boxes and the labels
-            pred_boxes = self._yolo.predict(raw_image, self._score_threshold, self._iou_threshold)
+            pred_boxes = self._yolo.predict(raw_image, self._obj_threshold, self._nms_threshold)
 
             score = np.array([box.score for box in pred_boxes])
             pred_labels = np.array([box.label for box in pred_boxes])

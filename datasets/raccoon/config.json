@@ -3,14 +3,11 @@
     "labels":           ["raccoon"],
     "annotation_type":  "xml",
 
+    "learning_type": "supervised",
+
     "train": {
         "img_folder":   "trainset/img/",
         "ann_folder":   "trainset/ann/"
-    },
-
-    "valid": {
-        "img_folder":   "",
-        "ann_folder":   ""
     },
 
     "test": {

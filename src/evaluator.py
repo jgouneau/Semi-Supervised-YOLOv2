@@ -23,20 +23,24 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
     ##########################
     #   Parse the annotations 
     ##########################
-    without_valid_imgs = False
+    if dataset_config['learning_type'] == "supervised":
+        train_folder = dataset_config['train']
+    else:
+        train_folder = dataset_config['train']['labelled']
+    test_folder = dataset_config['test']
+
     if dataset_config['annotation_type'] == 'xml':
         # parse annotations of the training set
-        train_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['train']['ann_folder'], 
-                                                        dataset_path + dataset_config['train']['img_folder'],
-                                                        dataset_config['labels'])
+        train_imgs = parse_annotation_xml(dataset_path + train_folder['ann_folder'],
+                                          dataset_path + train_folder['img_folder'],
+                                          dataset_config['labels'])
 
         # parse annotations of the validation set, if any.
         if dataset_config['test']['ann_folder'] != "":
-            valid_imgs, _ = parse_annotation_xml(dataset_path + dataset_config['test']['ann_folder'], 
-                                                            dataset_path + dataset_config['test']['img_folder'],
-                                                            dataset_config['labels'])
+            valid_imgs = parse_annotation_xml(dataset_path + test_folder['ann_folder'], 
+                                              dataset_path + test_folder['img_folder'],
+                                              dataset_config['labels'])
         else:
-            without_valid_imgs = True
             valid_imgs = default_valid_imgs
     else:
         raise ValueError("'annotations_type' must be 'xml' not {}.".format(dataset_config['annotations_type']))
@@ -50,8 +54,9 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
     #   Evaluate the network
     #########################
 
-    iou_threshold = agent_config['predict']['iou_threshold']
-    score_threshold = agent_config['predict']['score_threshold']
+    iou_threshold = agent_config['evaluate']['iou_threshold']
+    nms_threshold = agent_config['predict']['nms_threshold']
+    obj_threshold = agent_config['predict']['obj_threshold']
     print("calculing mAP for iou threshold = {}".format(iou_threshold))
     generator_config = {
                 'IMAGE_H': agent._input_size[0],
@@ -72,7 +77,8 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
                                       jitter=False)
     valid_eval = MapEvaluation(agent, valid_generator,
                                 iou_threshold=iou_threshold,
-                                score_threshold=score_threshold)
+                                nms_threshold=nms_threshold,
+                                obj_threshold=obj_threshold)
 
     _map, average_precisions = valid_eval.evaluate_map()
     for label, average_precision in average_precisions.items():
@@ -84,7 +90,8 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
                                      jitter=False)  
     train_eval = MapEvaluation(agent, train_generator,
                                iou_threshold=iou_threshold,
-                               score_threshold=score_threshold)
+                               nms_threshold=nms_threshold,
+                               obj_threshold=obj_threshold)
 
     _map, average_precisions = train_eval.evaluate_map()
     for label, average_precision in average_precisions.items():

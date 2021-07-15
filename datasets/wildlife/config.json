@@ -3,6 +3,8 @@
     "labels":           ["buffalo", "elephant", "rhino", "zebra"],
     "annotation_type":  "xml",
 
+    "learning_type": "semi-supervised",
+
     "train": {
         "labelled": {
             "img_folder":   "trainset/labelled/img/",

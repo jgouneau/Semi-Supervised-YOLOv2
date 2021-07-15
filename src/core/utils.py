@@ -20,7 +20,7 @@ def normalize(image):
 
     return image
 
-def decode_netout(netout, nb_class, obj_threshold=0.5, nms_threshold=0.3):
+def decode_netout(netout, nb_class, obj_threshold=0.5, iou_threshold=0.5):
     grid_h, grid_w, nb_box = netout.shape[:3]
 
     boxes = []
@@ -52,7 +52,7 @@ def decode_netout(netout, nb_class, obj_threshold=0.5, nms_threshold=0.3):
                 for j in range(i + 1, len(sorted_indices)):
                     index_j = sorted_indices[j]
 
-                    if bbox_iou(boxes[index_i], boxes[index_j]) >= nms_threshold:
+                    if bbox_iou(boxes[index_i], boxes[index_j]) >= iou_threshold:
                         boxes[index_i].classes[c] = 0
 
     # remove the boxes which are less likely than a obj_threshold
@@ -146,17 +146,19 @@ def list_files(base_path, valid_exts="", contains=None):
 #############################
 
 class BoundBox:
-    def __init__(self, xmin, ymin, xmax, ymax, c=None, classes=None):
+    def __init__(self, xmin, ymin, xmax, ymax, conf=None, classes=None):
         self.xmin = xmin
         self.ymin = ymin
         self.xmax = xmax
         self.ymax = ymax
-
-        self.c = c
         self.classes = classes
 
+        self.conf = conf
         self.label = -1
         self.score = -1
+    
+    def get_conf(self):
+        return self.conf
 
     def get_label(self):
         if self.label == -1:
@@ -165,7 +167,7 @@ class BoundBox:
 
     def get_score(self):
         if self.score == -1:
-            self.score = self.classes[self.get_label()]*self.c
+            self.score = self.classes[self.get_label()]*self.conf
         return self.score
 
     def __repr__(self):
@@ -214,7 +216,6 @@ def bbox_iou(box1, box2):
 def parse_annotation_xml(ann_dir, img_dir, labels=[]):
     # This parser is utilized on VOC dataset
     all_imgs = []
-    seen_labels = {}
 
     ann_files = os.listdir(ann_dir)
     for ann in tqdm(sorted(ann_files)):
@@ -229,17 +230,20 @@ def parse_annotation_xml(ann_dir, img_dir, labels=[]):
                 img['width'] = int(elem.text)
             if 'height' in elem.tag:
                 img['height'] = int(elem.text)
+            if 'pseudo_labelled' in elem.tag:
+                img['pseudo_labelled'] = int(elem.text)
+            else:
+                img['pseudo_labelled'] = 0
             if 'object' in elem.tag or 'part' in elem.tag:
                 obj = {}
 
                 for attr in list(elem):
+                    if 'confident' in attr.tag:
+                        img['confident'] = int(attr.text)
+                    else:
+                        img['confident'] = 0
                     if 'name' in attr.tag:
                         obj['name'] = attr.text
-
-                        if obj['name'] in seen_labels:
-                            seen_labels[obj['name']] += 1
-                        else:
-                            seen_labels[obj['name']] = 1
 
                         if len(labels) > 0 and obj['name'] not in labels:
                             break
@@ -260,7 +264,7 @@ def parse_annotation_xml(ann_dir, img_dir, labels=[]):
         #if len(img['object']) > 0:
         all_imgs += [img]
 
-    return all_imgs, seen_labels
+    return all_imgs
 
 
 #############################
