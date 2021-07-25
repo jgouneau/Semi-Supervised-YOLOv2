@@ -1,31 +1,32 @@
 {
     "model": {
-        "backend":              "mobilenet",
-        "input_size_w":         224,
-        "input_size_h":         224
+        "backend":                  "mobilenet",
+        "input_size_w":             224,
+        "input_size_h":             224
     },
 
     "train": {
-        "nb_epochs":            30,
-        "warmup_epochs":        0,
-        "batch_size":           4,
-        "learning_rate":        4e-4,
-        "lamb_obj":             1.0,
-        "lamb_noobj":           0.5,
-        "lamb_coord":           5.0,
-        "lamb_class":           1.0,
-        "lamb_u":               1.0,
-        "workers":              3,
-        "max_queue_size":       8
+        "nb_epochs":                30,
+        "warmup_epochs":            0,
+        "batch_size":               4,
+        "pseudo_lab_batch_size":    4,
+        "learning_rate":            4e-4,
+        "lamb_obj":                 1.0,
+        "lamb_noobj":               0.5,
+        "lamb_coord":               5.0,
+        "lamb_class":               1.0,
+        "lamb_u":                   1.0,
+        "workers":                  3,
+        "max_queue_size":           8
     },
 
     "predict": {
-        "nms_threshold":        0.5,
-        "obj_threshold":        0.5
+        "nms_threshold":            0.5,
+        "obj_threshold":            0.5
     },
 
     "evaluate": {
-        "iou_threshold":        0.5
+        "iou_threshold":            0.5
     }
 
 }
