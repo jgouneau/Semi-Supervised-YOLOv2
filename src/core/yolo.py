@@ -13,16 +13,14 @@ import os
 import cv2
 
 from .utils import normalize, decode_netout, generate_yolo_grid
-from .preprocessing import BatchGenerator
+from .preprocessing import BatchGenerator, SSLBatchGenerator
 from .loss import Loss
 from .scheduler import WarmupScheduler
-
-SESSIONS_PATH = "./YOLOv2/agents/"
 
 class YOLO(object):
 
   def __init__(self, name, backend, input_size, labels, anchors, config):
-        self._name = name
+        self.name = name
         self._input_size = input_size
         self.labels = list(labels)
         self._nb_class = len(self.labels)
@@ -90,7 +88,7 @@ class YOLO(object):
         out_p = K.softmax(out_p)
 
         output = concatenate([out_xy, out_wh, out_c, out_p], name="YOLO_output")
-        self._model = Model(input_image, output, name=self._name)
+        self._model = Model(input_image, output, name=self.name)
 
         # initialize the weights of the detection layer
         for i in range(4):
@@ -101,10 +99,10 @@ class YOLO(object):
           layer.set_weights([new_kernel, new_bias])
 
         # create the associated folder
-        self._session_path = SESSIONS_PATH + self._name + "/"
-        self._weights_path = self._session_path + "weights/"
-        self._temp_path = self._session_path + "temp/"
-        os.makedirs(self._session_path, exist_ok=True)
+        self._agent_path = config['agents_paths'][self.name] + "/"
+        self._weights_path = self._agent_path + "weights/"
+        self._temp_path = self._agent_path + "temp/"
+        os.makedirs(self._agent_path, exist_ok=True)
         os.makedirs(self._weights_path, exist_ok=True)
         os.makedirs(self._temp_path, exist_ok=True)
 
@@ -129,6 +127,8 @@ class YOLO(object):
               lamb_class,
               lamb_u,
               warmup_epochs,
+              pseudo_lab_data=None,
+              pseudo_lab_batch_size=0,
               workers=3,
               max_queue_size=8,
               early_stop=True,
@@ -148,10 +148,18 @@ class YOLO(object):
             'CLASS': len(self.labels),
             'ANCHORS': self._anchors,
             'BATCH_SIZE': batch_size,
+            'LAB_BATCH_SIZE': batch_size,
+            'PSEUDO_LAB_BATCH_SIZE': pseudo_lab_batch_size
         }
-        train_generator = BatchGenerator(train_data,
+        if pseudo_lab_data == None:
+            train_generator = BatchGenerator(train_data,
                                          generator_config,
-                                         jitter=False)
+                                         jitter=True)
+        else:
+            train_generator = SSLBatchGenerator(train_data,
+                                         pseudo_lab_data,
+                                         generator_config,
+                                         jitter=True)
         valid_generator = BatchGenerator(valid_data,
                                          generator_config,
                                          jitter=False)

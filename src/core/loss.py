@@ -51,24 +51,18 @@ class Loss(object):
         return loss_class
 
     def __call__(self, y_true, y_pred):
-        #total_coord_loss = self.coord_loss(y_true, y_pred)
-        #total_obj_loss = self.obj_loss(y_true, y_pred)
-        #total_class_loss = self.class_loss(y_true, y_pred)
-
-        #loss = total_coord_loss + total_obj_loss + total_class_loss
-
         xy_pred = y_pred[..., 0:2]
         xy_true = y_true[..., 0:2]
         sqrt_wh_pred = K.sqrt(y_pred[..., 2:4])
         sqrt_wh_true = K.sqrt(y_true[..., 2:4])
 
         conf_true = y_true[..., 5]
-        conf_pred = y_pred[..., 5]
+        conf_pred = y_pred[..., 4]
 
         p_c_pred = y_pred[..., 5:]
         p_c_true = y_true[..., 7:]
 
-        ind_supervised = y_true[..., 4]
+        ind_supervised = 1-y_true[..., 4]
         ind_obj = y_true[..., 5]
         ind_maybe_noobj = 1-y_true[..., 6]
 

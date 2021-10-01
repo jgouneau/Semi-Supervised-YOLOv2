@@ -8,7 +8,6 @@ import xml.etree.ElementTree as et
 from tqdm import tqdm
 
 import cv2
-
 #############################
 # YOLO
 #############################
@@ -238,10 +237,10 @@ def parse_annotation_xml(ann_dir, img_dir, labels=[]):
                 obj = {}
 
                 for attr in list(elem):
-                    if 'confident' in attr.tag:
-                        img['confident'] = int(attr.text)
+                    if 'pl_confident' in attr.tag:
+                        obj['pl_confident'] = int(attr.text)
                     else:
-                        img['confident'] = 0
+                        obj['pl_confident'] = 1
                     if 'name' in attr.tag:
                         obj['name'] = attr.text
 

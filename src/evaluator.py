@@ -16,8 +16,8 @@ def evaluate_agent(agent, dataset_name, default_valid_imgs, main_config_path):
     with open(dataset_path + "config.json") as config_buffer:    
         dataset_config = json.loads(config_buffer.read())
     
-    agent_config_path = main_config['agents_config_path']
-    with open(agent_config_path) as config_buffer:    
+    agent_path = main_config['agents_paths'][agent.name]
+    with open(agent_path + "config.json") as config_buffer:    
         agent_config = json.loads(config_buffer.read())
 
     ##########################

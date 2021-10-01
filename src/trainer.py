@@ -6,7 +6,7 @@ import numpy as np
 from core.yolo import YOLO
 from core.utils import enable_memory_growth, parse_annotation_xml
 
-def train_agent(agent, dataset_name, main_config_path, train_mode='supervised'):
+def train_agent(agent, dataset_name, main_config_path):
     enable_memory_growth()
 
     with open(main_config_path) as config_buffer:    
@@ -16,13 +16,14 @@ def train_agent(agent, dataset_name, main_config_path, train_mode='supervised'):
     with open(dataset_path + "config.json") as config_buffer:    
         dataset_config = json.loads(config_buffer.read())
     
-    agent_config_path = main_config['agents_config_path']
-    with open(agent_config_path) as config_buffer:    
+    agent_path = main_config['agents_paths'][agent.name]
+    with open(agent_path + "config.json") as config_buffer:    
         agent_config = json.loads(config_buffer.read())
 
     ###############################
     #   Parse the annotations 
     ###############################
+    train_mode = agent_config['train']['mode']
 
     if dataset_config['learning_type'] == "supervised":
         train_folder = dataset_config['train']
@@ -42,7 +43,6 @@ def train_agent(agent, dataset_name, main_config_path, train_mode='supervised'):
                 unlab_train_imgs = parse_annotation_xml(dataset_path + unlab_train_folder['ann_folder'], 
                                                         dataset_path + unlab_train_folder['img_folder'],
                                                         dataset_config['labels'])
-                train_imgs = train_imgs + unlab_train_imgs
             else:
                 raise ValueError(
                     "no unlabelled folder for semi-supervised learning")
@@ -69,19 +69,35 @@ def train_agent(agent, dataset_name, main_config_path, train_mode='supervised'):
     ###############################
     #   Start the training process 
     ###############################
-
-    agent.train(train_data = train_imgs,
-               valid_data = valid_imgs,
-               nb_epochs = agent_config['train']['nb_epochs'],
-               batch_size = agent_config['train']['batch_size'],
-               learning_rate = agent_config['train']['learning_rate'],
-               warmup_epochs = agent_config['train']['warmup_epochs'],
-               lamb_obj = agent_config['train']['lamb_obj'],
-               lamb_noobj = agent_config['train']['lamb_noobj'],
-               lamb_coord = agent_config['train']['lamb_coord'],
-               lamb_class = agent_config['train']['lamb_class'],
-               lamb_u = agent_config['train']['lamb_u'],
-               workers=agent_config['train']['workers'],
-               max_queue_size=agent_config['train']['max_queue_size'])
+    if train_mode == 'supervised':
+        agent.train(train_data = train_imgs,
+                  valid_data = valid_imgs,
+                  nb_epochs = agent_config['train']['nb_epochs'],
+                  batch_size = agent_config['train']['batch_size'],
+                  learning_rate = agent_config['train']['learning_rate'],
+                  warmup_epochs = agent_config['train']['warmup_epochs'],
+                  lamb_obj = agent_config['train']['lamb_obj'],
+                  lamb_noobj = agent_config['train']['lamb_noobj'],
+                  lamb_coord = agent_config['train']['lamb_coord'],
+                  lamb_class = agent_config['train']['lamb_class'],
+                  lamb_u = agent_config['train']['lamb_u'],
+                  workers=agent_config['train']['workers'],
+                  max_queue_size=agent_config['train']['max_queue_size'])
+    else :
+        agent.train(train_data = train_imgs,
+                  valid_data = valid_imgs,
+                  nb_epochs = agent_config['train']['nb_epochs'],
+                  batch_size = agent_config['train']['batch_size'],
+                  learning_rate = agent_config['train']['learning_rate'],
+                  warmup_epochs = agent_config['train']['warmup_epochs'],
+                  lamb_obj = agent_config['train']['lamb_obj'],
+                  lamb_noobj = agent_config['train']['lamb_noobj'],
+                  lamb_coord = agent_config['train']['lamb_coord'],
+                  lamb_class = agent_config['train']['lamb_class'],
+                  lamb_u = agent_config['train']['lamb_u'],
+                  pseudo_lab_data=unlab_train_imgs,
+                  pseudo_lab_batch_size=agent_config['train']['pseudo_lab_batch_size'],
+                  workers=agent_config['train']['workers'],
+                  max_queue_size=agent_config['train']['max_queue_size'])
     
     return valid_imgs

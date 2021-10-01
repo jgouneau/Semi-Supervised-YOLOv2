@@ -11,8 +11,8 @@ def hire_agent(agent_name, dataset_name, main_config_path):
     with open(dataset_path + "config.json") as config_buffer:
         dataset_config = json.loads(config_buffer.read())
 
-    agent_config_path = main_config['agents_config_path']
-    with open(agent_config_path) as config_buffer:
+    agent_path = main_config['agents_paths'][agent_name]
+    with open(agent_path + "config.json") as config_buffer:
         agent_config = json.loads(config_buffer.read())
     
     backend = agent_config['model']['backend']

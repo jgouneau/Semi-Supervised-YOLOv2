@@ -1,13 +1,16 @@
 {
     "backend_paths": {
-        "mobilenet": "./YOLOv2/src/core/backend_weights/mobilenet_backend.h5"
+        "mobilenet": "./src/core/backend_weights/mobilenet_backend.h5"
     },
 
     "datasets_paths": {
-        "raccoon": "./YOLOv2/datasets/raccoon/",
-        "wildlife": "./YOLOv2/datasets/wildlife/"
+        "raccoon": "./datasets/raccoon/",
+        "wildlife": "./datasets/wildlife/"
     },
 
-    "agents_config_path" : "./YOLOv2/agents/config.json"
+    "agents_paths": {
+        "teacher": "./agents/teacher/",
+        "student": "./agents/student/"
+    }
 
 }

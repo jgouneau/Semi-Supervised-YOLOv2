@@ -3,7 +3,6 @@ from tensorflow import keras
 
 from .utils import compute_overlap, compute_ap
 
-
 class MapEvaluation(keras.callbacks.Callback):
     """ Evaluate a given dataset using a given model.
         code originally from https://github.com/fizyr/keras-retinanet

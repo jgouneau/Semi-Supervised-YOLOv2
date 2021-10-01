@@ -1,7 +1,6 @@
 from core.utils import draw_boxes, enable_memory_growth, list_images
 from core.yolo import YOLO
 from tqdm import tqdm
-from google.colab.patches import cv2_imshow
 import numpy as np
 import json
 import cv2
@@ -14,8 +13,8 @@ def agent_prediction(agent, image_path, main_config_path):
     with open(main_config_path) as config_buffer:
         main_config = json.load(config_buffer)
     
-    agent_config_path = main_config['agents_config_path']
-    with open(agent_config_path) as config_buffer:
+    agent_path = main_config['agents_paths'][agent.name]
+    with open(agent_path) as config_buffer:
         agent_config = json.load(config_buffer)
 
     ###########################
@@ -25,10 +24,10 @@ def agent_prediction(agent, image_path, main_config_path):
     #if os.path.isfile(image_path):
     image = cv2.imread(image_path)
     boxes = agent.predict(image,
-                            iou_threshold=agent_config['predict']['iou_threshold'],
-                            score_threshold=agent_config['predict']['score_threshold'])
+                            obj_threshold=agent_config['predict']['obj_threshold'],
+                            nms_threshold=agent_config['predict']['nms_threshold'])
     image = draw_boxes(image, boxes, agent.labels)
-    cv2_imshow(image)
+    cv2.imshow(image)
         #cv2.imwrite(image_path[:-4] + '_detected' + image_path[-4:], image)
     #else:
     #    detected_images_path = os.path.join(image_path, "detected")

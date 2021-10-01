@@ -3,7 +3,6 @@ import numpy as np
 import random
 import json
 
-
 def iou(ann, centroids):
     w, h = ann
     similarities = []
